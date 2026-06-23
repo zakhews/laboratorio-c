@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Laboratório Visual de Programação em C</title>
+
+<style>
+:root{
+    --bg:#1e1e1e;
+    --panel:#252526;
+    --border:#3c3c3c;
+    --text:#d4d4d4;
+    --title:#61dafb;
+    --green:#4ec9b0;
+    --yellow:#ffe066;
+    --red:#f44336;
+    --blue:#569cd6;
+}
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:flex-start;
+    padding:40px 20px;
+}
+
+.container{
+    width:100%;
+    max-width:1000px;
+}
+
+header{
+    text-align:center;
+    margin-bottom:40px;
+}
+
+header h1{
+    color:var(--title);
+    font-size:2.3rem;
+    margin-bottom:10px;
+}
+
+header p{
+    color:#999;
+    font-size:1rem;
+}
+
+.section{
+    margin-bottom:35px;
+}
+
+.section-title{
+    font-size:1.2rem;
+    margin-bottom:15px;
+    color:#ddd;
+    border-bottom:1px solid var(--border);
+    padding-bottom:8px;
+}
+
+.modules{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+    gap:15px;
+}
+
+.module{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:18px;
+    transition:0.2s;
+}
+
+.module.enabled:hover{
+    transform:translateY(-3px);
+    border-color:var(--blue);
+}
+
+.module a{
+    text-decoration:none;
+    color:inherit;
+    display:block;
+}
+
+.module-title{
+    font-size:1.05rem;
+    font-weight:bold;
+    margin-bottom:8px;
+}
+
+.module-desc{
+    color:#aaa;
+    font-size:0.9rem;
+    line-height:1.4;
+}
+
+.enabled .status{
+    color:var(--green);
+}
+
+.locked{
+    opacity:0.55;
+}
+
+.locked .status{
+    color:var(--yellow);
+}
+
+footer{
+    text-align:center;
+    margin-top:50px;
+    color:#777;
+    font-size:0.85rem;
+}
+
+.badge{
+    display:inline-block;
+    padding:4px 8px;
+    border-radius:4px;
+    margin-bottom:10px;
+    font-size:0.8rem;
+    font-weight:bold;
+}
+
+.badge-open{
+    background:rgba(78,201,176,.15);
+    color:var(--green);
+}
+
+.badge-lock{
+    background:rgba(255,224,102,.12);
+    color:var(--yellow);
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<header>
+    <h1>Laboratório Visual de Programação em C</h1>
+
+    <p>
+        Ambiente interativo para visualizar a execução de algoritmos,
+        estruturas de repetição e manipulação de dados em linguagem C.
+    </p>
+</header>
+
+<section class="section">
+
+    <div class="section-title">
+        Fundamentos
+    </div>
+
+    <div class="modules">
+
+        <div class="module enabled">
+            <a href="simuladores/for-basico.html">
+                <div class="badge badge-open">
+                    DISPONÍVEL
+                </div>
+
+                <div class="module-title">
+                    🟢 Loop FOR
+                </div>
+
+                <div class="module-desc">
+                    Visualize passo a passo a inicialização,
+                    condição, execução e incremento de um loop contado.
+                </div>
+            </a>
+        </div>
+
+        <div class="module locked">
+
+            <div class="badge badge-lock">
+                BLOQUEADO
+            </div>
+
+            <div class="module-title">
+                🔒 Vetores
+            </div>
+
+            <div class="module-desc">
+                Manipulação básica de vetores utilizando loops FOR.
+            </div>
+
+        </div>
+
+        <div class="module locked">
+
+            <div class="badge badge-lock">
+                BLOQUEADO
+            </div>
+
+            <div class="module-title">
+                🔒 Matrizes
+            </div>
+
+            <div class="module-desc">
+                Percorrendo matrizes com loops aninhados.
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+<section class="section">
+
+    <div class="section-title">
+        Estruturas de Decisão
+    </div>
+
+    <div class="modules">
+
+        <div class="module locked">
+
+            <div class="badge badge-lock">
+                BLOQUEADO
+            </div>
+
+            <div class="module-title">
+                🔒 IF / ELSE
+            </div>
+
+            <div class="module-desc">
+                Fluxo de execução baseado em condições.
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+<section class="section">
+
+    <div class="section-title">
+        Algoritmos
+    </div>
+
+    <div class="modules">
+
+        <div class="module locked">
+
+            <div class="badge badge-lock">
+                BLOQUEADO
+            </div>
+
+            <div class="module-title">
+                🔒 Busca Linear
+            </div>
+
+            <div class="module-desc">
+                Procura de elementos em vetores.
+            </div>
+
+        </div>
+
+        <div class="module locked">
+
+            <div class="badge badge-lock">
+                BLOQUEADO
+            </div>
+
+            <div class="module-title">
+                🔒 Bubble Sort
+            </div>
+
+            <div class="module-desc">
+                Visualização das trocas realizadas durante a ordenação.
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+<footer>
+    Laboratório Visual de Programação em C • Desenvolvido para apoio didático às disciplinas de Algoritmos e Programação
+</footer>
+
+</div>
+
+</body>
+</html>

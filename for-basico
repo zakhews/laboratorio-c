@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FOR Básico — LVPC</title>
+<style>
+  :root {
+    --bg:       #1e1e1e;
+    --panel:    #252526;
+    --border:   #3c3c3c;
+    --text:     #d4d4d4;
+    --text-dim: #858585;
+    --blue:     #569cd6;
+    --green:    #4ec9b0;
+    --red:      #f44336;
+    --yellow:   #ffe066;
+    --purple:   #c586c0;
+    --orange:   #ce9178;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; display: flex; flex-direction: column; }
+
+  /* ── TOPBAR ── */
+  .topbar {
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .topbar-left { display: flex; align-items: center; gap: 16px; }
+  .back-link { color: var(--text-dim); font-size: 12px; text-decoration: none; }
+  .back-link:hover { color: var(--blue); }
+  .sim-titulo { font-size: 14px; font-weight: 600; color: var(--text); }
+  .sim-subtitulo { font-size: 11px; color: var(--text-dim); }
+
+  /* ── MODOS ── */
+  .modos-bar {
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    padding: 0 20px;
+    display: flex;
+    gap: 2px;
+  }
+  .modo-btn {
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--text-dim);
+    font-size: 12px;
+    padding: 10px 16px;
+    cursor: pointer;
+    transition: color .15s, border-color .15s;
+    font-family: inherit;
+  }
+  .modo-btn:hover { color: var(--text); }
+  .modo-btn.ativo { color: var(--blue); border-bottom-color: var(--blue); }
+
+  /* ── EXPERIMENTO PARAMS ── */
+  .params-bar {
+    background: #1a2a3a;
+    border-bottom: 1px solid #2a4060;
+    padding: 8px 20px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .params-bar label { font-size: 12px; color: var(--blue); display: flex; align-items: center; gap: 8px; }
+  .params-bar input[type=number] {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'Consolas', monospace;
+    font-size: 13px;
+    padding: 4px 8px;
+    width: 60px;
+    border-radius: 3px;
+    outline: none;
+  }
+  .params-bar input:focus { border-color: var(--blue); }
+  .btn-aplicar {
+    background: var(--blue);
+    color: #fff;
+    border: none;
+    padding: 5px 14px;
+    border-radius: 3px;
+    font-size: 12px;
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .params-bar.oculto { display: none; }
+
+  /* ── BARRA DE CONTROLE ── */
+  .controles {
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    padding: 8px 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .ctrl-btn {
+    background: #2d2d2d;
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 6px 14px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: background .15s, border-color .15s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .ctrl-btn:hover:not(:disabled) { background: #3a3a3a; border-color: var(--blue); }
+  .ctrl-btn:disabled { opacity: .35; cursor: not-allowed; }
+  .ctrl-btn.primario { background: var(--blue); border-color: var(--blue); color: #fff; }
+  .ctrl-btn.primario:hover:not(:disabled) { background: #4a8cbf; }
+  .ctrl-sep { width: 1px; height: 24px; background: var(--border); margin: 0 4px; }
+  .vel-grupo { display: flex; align-items: center; gap: 4px; margin-left: auto; }
+  .vel-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    width: 30px;
+    height: 28px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 13px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .vel-btn.ativo { border-color: var(--yellow); color: var(--yellow); }
+
+  /* ── GRID PRINCIPAL ── */
+  .sim-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr 1fr;
+    gap: 1px;
+    background: var(--border);
+    flex: 1;
+    min-height: 0;
+  }
+  .painel {
+    background: var(--panel);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 140px;
+  }
+  .painel-titulo {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-dim);
+    padding: 8px 14px 6px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+    flex-shrink: 0;
+  }
+  .painel-corpo { flex: 1; overflow-y: auto; padding: 12px 14px; }
+
+  /* ── CÓDIGO FONTE ── */
+  .codigo-linha {
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 13px;
+    line-height: 1.9;
+    padding: 0 8px;
+    border-left: 3px solid transparent;
+    border-radius: 2px;
+    white-space: pre;
+    transition: background .15s;
+  }
+  .codigo-linha.ativa {
+    background: rgba(255, 224, 102, .1);
+    border-left-color: var(--yellow);
+  }
+  .ln { color: #555; user-select: none; margin-right: 14px; }
+  .kw  { color: var(--purple); }
+  .tp  { color: var(--blue); }
+  .num { color: var(--orange); }
+  .op  { color: var(--text-dim); }
+  .fn  { color: var(--yellow); }
+  .str { color: var(--orange); }
+  .expr-destaque { background: rgba(86,156,214,.25); border-radius: 2px; padding: 0 2px; }
+
+  /* ── FLUXO ── */
+  .fluxo-node {
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 8px 14px;
+    font-size: 12px;
+    text-align: center;
+    margin: 0 auto;
+    max-width: 180px;
+    transition: background .2s, border-color .2s, color .2s;
+    font-family: 'Consolas', monospace;
+  }
+  .fluxo-node.ativo {
+    background: rgba(255,224,102,.12);
+    border-color: var(--yellow);
+    color: var(--yellow);
+    font-weight: 700;
+  }
+  .fluxo-node.verde { border-color: var(--green); color: var(--green); }
+  .fluxo-node.vermelho { border-color: var(--red); color: var(--red); }
+  .fluxo-seta {
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 14px;
+    margin: 4px 0;
+    line-height: 1;
+  }
+  .fluxo-bifurc {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 4px;
+  }
+  .bifurc-lado { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .bifurc-label { font-size: 10px; font-family: 'Consolas', monospace; }
+
+  /* ── MEMÓRIA ── */
+  .mem-tabela { border-collapse: collapse; width: 100%; font-family: 'Consolas', monospace; font-size: 13px; }
+  .mem-tabela th {
+    text-align: left;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+    padding: 4px 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .mem-tabela td {
+    padding: 7px 10px;
+    border-bottom: 1px solid #2a2a2a;
+  }
+  .mem-var  { color: var(--blue); }
+  .mem-val  { color: var(--yellow); font-weight: 700; }
+  .mem-tipo { color: var(--text-dim); font-size: 11px; }
+  .mem-linha.ativa td { background: rgba(255,224,102,.07); }
+
+  /* ── AVALIAÇÃO ATUAL ── */
+  .aval-bloco {
+    font-family: 'Consolas', monospace;
+    font-size: 13px;
+    line-height: 2;
+  }
+  .aval-original { color: var(--text-dim); }
+  .aval-subst { color: var(--blue); }
+  .aval-result {
+    font-size: 16px;
+    font-weight: 700;
+    margin-top: 4px;
+  }
+  .aval-true  { color: var(--green); }
+  .aval-false { color: var(--red); }
+  .aval-num   { color: var(--yellow); }
+  .aval-narracao {
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--text-dim);
+    font-family: 'Segoe UI', sans-serif;
+    line-height: 1.6;
+    border-left: 2px solid var(--border);
+    padding-left: 10px;
+    font-style: italic;
+  }
+  .aval-vazio { color: var(--text-dim); font-size: 12px; font-style: italic; }
+
+  /* ── TERMINAL ── */
+  .terminal-output {
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 13px;
+    line-height: 1.8;
+    color: var(--green);
+    white-space: pre-wrap;
+  }
+  .terminal-prompt { color: var(--text-dim); font-size: 12px; margin-top: 6px; }
+
+  /* ── ESTADO ── */
+  .estado-bloco { font-size: 12px; line-height: 1.8; }
+  .estado-linha { display: flex; gap: 8px; margin-bottom: 4px; }
+  .estado-label { color: var(--text-dim); min-width: 80px; }
+  .estado-val   { color: var(--text); }
+  .estado-iter  { font-family: 'Consolas', monospace; color: var(--yellow); }
+  .estado-prox  { color: var(--blue); }
+  .estado-enc   { color: var(--green); font-weight: 600; }
+
+  /* ── QUIZ (Desafio) ── */
+  .quiz-box {
+    background: #1a1a2e;
+    border: 1px solid #2a2a5a;
+    border-radius: 6px;
+    padding: 14px 16px;
+    margin: 10px 14px;
+    display: none;
+  }
+  .quiz-box.visivel { display: block; }
+  .quiz-pergunta { font-size: 13px; color: var(--text); margin-bottom: 10px; font-weight: 600; }
+  .quiz-opcoes { display: flex; flex-direction: column; gap: 6px; }
+  .quiz-opcao {
+    background: #252540;
+    border: 1px solid #3a3a6a;
+    border-radius: 4px;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 12px;
+    font-family: 'Consolas', monospace;
+    color: var(--text);
+    transition: background .15s, border-color .15s;
+    text-align: left;
+  }
+  .quiz-opcao:hover:not(:disabled) { background: #2d2d5a; border-color: var(--blue); }
+  .quiz-opcao.correta  { background: #1a3a1a; border-color: var(--green); color: var(--green); }
+  .quiz-opcao.errada   { background: #3a1a1a; border-color: var(--red);   color: var(--red); }
+  .quiz-feedback { font-size: 12px; margin-top: 10px; min-height: 18px; font-style: italic; }
+  .quiz-fb-ok  { color: var(--green); }
+  .quiz-fb-err { color: var(--red); }
+
+  /* aviso quiz ativo no botão próximo */
+  .ctrl-btn.bloqueado-quiz {
+    opacity: .35;
+    cursor: not-allowed;
+    position: relative;
+  }
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-left">
+    <a class="back-link" href="index.html">← LVPC</a>
+    <div>
+      <div class="sim-titulo">🔁 FOR Básico</div>
+      <div class="sim-subtitulo">Contador simples — inicialização · condição · corpo · incremento</div>
+    </div>
+  </div>
+  <span id="iteracao-badge" style="font-family:Consolas,monospace;font-size:12px;color:var(--text-dim)"></span>
+</div>
+
+<!-- MODOS -->
+<div class="modos-bar">
+  <button class="modo-btn ativo" onclick="setModo('demo')">▶ Demonstração</button>
+  <button class="modo-btn" onclick="setModo('explo')">🕹 Exploração</button>
+  <button class="modo-btn" onclick="setModo('exp')">⚙ Experimento</button>
+  <button class="modo-btn" onclick="setModo('desafio')">🎯 Desafio</button>
+</div>
+
+<!-- PARAMS (Experimento) -->
+<div class="params-bar oculto" id="params-bar">
+  <label>Início (i=)
+    <input type="number" id="p-inicio" value="0" min="0" max="20">
+  </label>
+  <label>Limite (&lt;)
+    <input type="number" id="p-limite" value="5" min="1" max="20">
+  </label>
+  <label>Incremento (i+=)
+    <input type="number" id="p-inc" value="1" min="1" max="5">
+  </label>
+  <button class="btn-aplicar" onclick="aplicarParams()">Aplicar e Reiniciar</button>
+</div>
+
+<!-- CONTROLES -->
+<div class="controles">
+  <button class="ctrl-btn primario" id="btn-exec" onclick="executar()">▶ Executar</button>
+  <button class="ctrl-btn" id="btn-pause" onclick="pausar()" disabled>⏸ Pausar</button>
+  <button class="ctrl-btn" id="btn-prox" onclick="proximoPasso()" disabled>⏭ Próximo</button>
+  <button class="ctrl-btn" id="btn-reiniciar" onclick="reiniciar()">🔄 Reiniciar</button>
+  <div class="ctrl-sep"></div>
+  <div class="vel-grupo">
+    <button class="vel-btn" onclick="setVel(1200)" title="Lento">🐢</button>
+    <button class="vel-btn ativo" onclick="setVel(700)" title="Normal">🚶</button>
+    <button class="vel-btn" onclick="setVel(250)" title="Rápido">🏃</button>
+  </div>
+</div>
+
+<!-- GRID -->
+<div class="sim-grid">
+
+  <!-- CÓDIGO FONTE -->
+  <div class="painel">
+    <div class="painel-titulo">Código Fonte</div>
+    <div class="painel-corpo" id="codigo-fonte"></div>
+  </div>
+
+  <!-- FLUXO -->
+  <div class="painel">
+    <div class="painel-titulo">Fluxo de Execução</div>
+    <div class="painel-corpo" id="fluxo-painel"></div>
+  </div>
+
+  <!-- MEMÓRIA -->
+  <div class="painel">
+    <div class="painel-titulo">Memória</div>
+    <div class="painel-corpo">
+      <table class="mem-tabela">
+        <thead><tr><th>Variável</th><th>Tipo</th><th>Valor</th></tr></thead>
+        <tbody id="mem-corpo"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- AVALIAÇÃO ATUAL -->
+  <div class="painel">
+    <div class="painel-titulo">Avaliação Atual</div>
+    <div class="painel-corpo" id="aval-painel">
+      <span class="aval-vazio">— aguardando execução —</span>
+    </div>
+    <!-- Quiz fica aqui, fora do painel-corpo para não rolar junto -->
+    <div class="quiz-box" id="quiz-box">
+      <div class="quiz-pergunta" id="quiz-pergunta"></div>
+      <div class="quiz-opcoes" id="quiz-opcoes"></div>
+      <div class="quiz-feedback" id="quiz-feedback"></div>
+    </div>
+  </div>
+
+  <!-- TERMINAL -->
+  <div class="painel">
+    <div class="painel-titulo">Terminal</div>
+    <div class="painel-corpo">
+      <div class="terminal-output" id="terminal"></div>
+      <div class="terminal-prompt" id="terminal-prompt"></div>
+    </div>
+  </div>
+
+  <!-- ESTADO -->
+  <div class="painel">
+    <div class="painel-titulo">Estado do Programa</div>
+    <div class="painel-corpo" id="estado-painel">
+      <div class="estado-bloco">
+        <div class="estado-linha"><span class="estado-label">Estado:</span><span class="estado-val">Aguardando início</span></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="js/config.js"></script>
+<script>
+// ═══════════════════════════════════════════════════════════
+//  ESTADO DO SIMULADOR
+// ═══════════════════════════════════════════════════════════
+let PARAMS = { inicio: 0, limite: 5, inc: 1 };
+let modo = 'demo';
+let velocidade = 700;
+let timer = null;
+let emExecucao = false;
+
+// Passos do FOR: cada objeto descreve o estado completo naquele momento
+let passos = [];
+let passoAtual = -1;
+let quizRespondido = false;
+
+// ── Gera todos os passos antes de executar ──────────────────
+function gerarPassos() {
+  const { inicio, limite, inc } = PARAMS;
+  const p = [];
+
+  // Passo 0: antes do loop
+  p.push({
+    tipo: 'pre',
+    linha: 0,
+    mem: {},
+    aval: null,
+    terminal: '',
+    estado: 'Iniciando programa.',
+    proximo: `Declarar variável i e inicializar com ${inicio}.`,
+    iter: 0,
+    fluxoAtivo: null,
+    narr: 'O programa ainda não entrou no loop.'
+  });
+
+  // Passo 1: inicialização
+  p.push({
+    tipo: 'init',
+    linha: 2,
+    mem: { i: inicio },
+    aval: { orig: `i = ${inicio}`, subst: null, res: String(inicio), tipo: 'num' },
+    terminal: '',
+    estado: 'Inicializando o loop.',
+    proximo: 'Verificar a condição do FOR.',
+    iter: 0,
+    fluxoAtivo: 'init',
+    narr: `A variável i recebe o valor ${inicio}. Esta é a inicialização do FOR — acontece apenas uma vez.`
+  });
+
+  let saida = '';
+  let iteracao = 0;
+
+  for (let i = inicio; ; i += inc) {
+    const cond = i < limite;
+    iteracao++;
+
+    // Teste da condição
+    p.push({
+      tipo: 'cond',
+      linha: 2,
+      mem: { i },
+      aval: {
+        orig: `i < ${limite}`,
+        subst: `${i} < ${limite}`,
+        res: cond ? 'TRUE' : 'FALSE',
+        tipo: cond ? 'true' : 'false'
+      },
+      terminal: saida,
+      estado: cond ? 'Condição TRUE — executar corpo.' : 'Condição FALSE — encerrar loop.',
+      proximo: cond ? 'Executar corpo do loop.' : 'Sair do FOR.',
+      iter: iteracao,
+      fluxoAtivo: 'cond',
+      fluxoCond: cond,
+      narr: cond
+        ? `Como ${i} é menor que ${limite}, a condição é verdadeira e o corpo do loop será executado.`
+        : `Como ${i} não é menor que ${limite}, a condição é falsa e o loop é encerrado.`
+    });
+
+    if (!cond) break;
+
+    // Corpo do loop
+    saida += `i = ${i}\n`;
+    p.push({
+      tipo: 'corpo',
+      linha: 3,
+      mem: { i },
+      aval: { orig: `printf("i = %d", i)`, subst: `printf("i = %d", ${i})`, res: `"i = ${i}"`, tipo: 'str' },
+      terminal: saida,
+      estado: 'Executando corpo do loop.',
+      proximo: `Incrementar i (i += ${inc}).`,
+      iter: iteracao,
+      fluxoAtivo: 'corpo',
+      narr: `O programa imprime o valor atual de i (${i}) no terminal.`
+    });
+
+    // Incremento
+    p.push({
+      tipo: 'inc',
+      linha: 2,
+      mem: { i },
+      aval: { orig: `i += ${inc}`, subst: `i = ${i} + ${inc}`, res: String(i + inc), tipo: 'num' },
+      terminal: saida,
+      estado: 'Incrementando i.',
+      proximo: 'Voltar ao teste da condição.',
+      iter: iteracao,
+      fluxoAtivo: 'inc',
+      narr: `i passa de ${i} para ${i + inc}. O loop retorna ao teste da condição.`
+    });
+  }
+
+  // Encerramento
+  p.push({
+    tipo: 'fim',
+    linha: 5,
+    mem: { i: inicio + Math.ceil((limite - inicio) / inc) * inc },
+    aval: null,
+    terminal: saida,
+    estado: 'Loop encerrado.',
+    proximo: 'Fim do programa.',
+    iter: iteracao,
+    fluxoAtivo: 'fim',
+    narr: `O loop executou ${iteracao - 1} iteração(ões) e encerrou quando i deixou de ser menor que ${limite}.`
+  });
+
+  return p;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  RENDERIZAÇÃO
+// ═══════════════════════════════════════════════════════════
+function renderizarCodigo(linhaAtiva, exprAtiva) {
+  const { inicio, limite, inc } = PARAMS;
+  const incStr = inc === 1 ? 'i++' : `i += ${inc}`;
+  const linhas = [
+    `<span class="kw">int</span> <span class="tp">main</span>() {`,
+    ``,
+    `    <span class="kw">for</span>(<span class="kw">int</span> i = <span class="num">${inicio}</span>; i &lt; <span class="num">${limite}</span>; ${incStr === 'i++' ? 'i++' : `i += <span class="num">${inc}</span>`}) {`,
+    `        <span class="fn">printf</span>(<span class="str">"i = %d\\n"</span>, i);`,
+    `    }`,
+    `    <span class="kw">return</span> <span class="num">0</span>;`,
+    `}`
+  ];
+  const el = document.getElementById('codigo-fonte');
+  el.innerHTML = linhas.map((txt, idx) => {
+    const ativa = idx === linhaAtiva ? 'ativa' : '';
+    return `<div class="codigo-linha ${ativa}"><span class="ln">${String(idx+1).padStart(2,' ')}</span>${txt}</div>`;
+  }).join('');
+}
+
+function renderizarFluxo(ativo, cond) {
+  const n = (id, label, extra='') => {
+    const cls = ativo === id ? 'fluxo-node ativo' : 'fluxo-node';
+    return `<div class="${cls} ${extra}">${label}</div>`;
+  };
+  const seta = (txt='↓') => `<div class="fluxo-seta">${txt}</div>`;
+
+  let html = `
+    ${n('init','Inicialização')}
+    ${seta()}
+    ${n('cond','Condição')}
+    ${seta()}
+    ${ativo === 'cond' && cond === false
+      ? `<div class="fluxo-bifurc">
+           <div class="bifurc-lado">
+             <span class="bifurc-label" style="color:var(--green)">TRUE</span>
+             ${n('corpo','Corpo', 'verde')}
+             ${seta()}
+             ${n('inc','Incremento')}
+             <div class="fluxo-seta" style="color:var(--blue)">↑ volta ao teste</div>
+           </div>
+           <div class="bifurc-lado">
+             <span class="bifurc-label" style="color:var(--red)">FALSE</span>
+             ${n('fim','Encerrar', 'vermelho')}
+           </div>
+         </div>`
+      : `${n('corpo','Corpo')}
+         ${seta()}
+         ${n('inc','Incremento')}
+         ${seta('↑')}
+         <div class="fluxo-seta" style="font-size:11px;color:var(--blue)">volta ao teste</div>`
+    }
+    ${ativo === 'fim' ? seta() + n('fim','Encerrado','vermelho') : ''}
+  `;
+  document.getElementById('fluxo-painel').innerHTML = html;
+}
+
+function renderizarMemoria(mem) {
+  const linhas = Object.entries(mem).map(([k, v]) =>
+    `<tr class="mem-linha ativa"><td class="mem-var">${k}</td><td class="mem-tipo">int</td><td class="mem-val">${v}</td></tr>`
+  ).join('');
+  document.getElementById('mem-corpo').innerHTML = linhas || '<tr><td colspan="3" style="color:var(--text-dim);font-style:italic;padding:8px 10px">— vazia —</td></tr>';
+}
+
+function renderizarAval(aval, narr) {
+  const el = document.getElementById('aval-painel');
+  if (!aval) { el.innerHTML = '<span class="aval-vazio">— aguardando avaliação —</span>'; return; }
+  const resClass = aval.tipo === 'true' ? 'aval-true' : aval.tipo === 'false' ? 'aval-false' : 'aval-num';
+  el.innerHTML = `
+    <div class="aval-bloco">
+      <div class="aval-original">${aval.orig}</div>
+      ${aval.subst ? `<div class="aval-subst">${aval.subst}</div>` : ''}
+      <div class="aval-result ${resClass}">${aval.res}</div>
+    </div>
+    ${narr ? `<div class="aval-narracao">${narr}</div>` : ''}
+  `;
+}
+
+function renderizarTerminal(txt) {
+  document.getElementById('terminal').textContent = txt || '';
+  document.getElementById('terminal-prompt').textContent = txt ? '▋' : '';
+}
+
+function renderizarEstado(p) {
+  document.getElementById('estado-painel').innerHTML = `
+    <div class="estado-bloco">
+      <div class="estado-linha"><span class="estado-label">Iteração:</span><span class="estado-iter">${p.iter || '—'}</span></div>
+      <div class="estado-linha"><span class="estado-label">Estado:</span><span class="estado-val">${p.estado}</span></div>
+      <div class="estado-linha"><span class="estado-label">Próximo:</span><span class="estado-prox">${p.proximo}</span></div>
+    </div>
+  `;
+  document.getElementById('iteracao-badge').textContent = p.tipo === 'fim' ? '✓ Concluído' : p.iter > 0 ? `Iteração ${p.iter}` : '';
+}
+
+function aplicarPasso(idx) {
+  if (idx < 0 || idx >= passos.length) return;
+  const p = passos[idx];
+  renderizarCodigo(p.linha, null);
+  renderizarFluxo(p.fluxoAtivo, p.fluxoCond);
+  renderizarMemoria(p.mem);
+  renderizarAval(p.aval, p.narr);
+  renderizarTerminal(p.terminal);
+  renderizarEstado(p);
+
+  if (p.tipo === 'fim') {
+    localStorage.setItem('lvpc_concluido_for-basico', '1');
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  QUIZ
+// ═══════════════════════════════════════════════════════════
+function gerarQuiz(idxProximo) {
+  if (idxProximo < 0 || idxProximo >= passos.length) return null;
+  const p = passos[idxProximo];
+
+  if (p.tipo === 'cond') {
+    const i = Object.values(p.mem)[0];
+    const { limite } = PARAMS;
+    const correto = i < limite ? 'TRUE' : 'FALSE';
+    const errada  = correto === 'TRUE' ? 'FALSE' : 'TRUE';
+    return {
+      pergunta: `Qual será o resultado de <code style="color:var(--blue)">${i} < ${limite}</code>?`,
+      opcoes: embaralhar([correto, errada, String(i)]),
+      correta: correto
+    };
+  }
+  if (p.tipo === 'inc') {
+    const i = Object.values(p.mem)[0];
+    const { inc } = PARAMS;
+    const correto = String(i + inc);
+    return {
+      pergunta: `Após o incremento, qual será o valor de <code style="color:var(--blue)">i</code>?`,
+      opcoes: embaralhar([correto, String(i), String(i + inc + 1)]),
+      correta: correto
+    };
+  }
+  if (p.tipo === 'corpo') {
+    const i = Object.values(p.mem)[0];
+    return {
+      pergunta: `O que será impresso no terminal agora?`,
+      opcoes: embaralhar([`i = ${i}`, `i = ${i+1}`, `i = ${i-1}`]),
+      correta: `i = ${i}`
+    };
+  }
+  return null;
+}
+
+function embaralhar(arr) {
+  return [...arr].sort(() => Math.random() - .5);
+}
+
+let quizAtual = null;
+function mostrarQuiz(idxProximo) {
+  quizAtual = gerarQuiz(idxProximo);
+  const box = document.getElementById('quiz-box');
+  if (!quizAtual) { box.classList.remove('visivel'); return; }
+
+  box.classList.add('visivel');
+  document.getElementById('quiz-pergunta').innerHTML = quizAtual.pergunta;
+  document.getElementById('quiz-feedback').textContent = '';
+  document.getElementById('quiz-feedback').className = 'quiz-feedback';
+  quizRespondido = false;
+
+  const opts = document.getElementById('quiz-opcoes');
+  opts.innerHTML = quizAtual.opcoes.map(op =>
+    `<button class="quiz-opcao" onclick="responderQuiz(this,'${op.replace(/'/g,"&#39;")}')">${op}</button>`
+  ).join('');
+
+  // Travar botão próximo
+  document.getElementById('btn-prox').classList.add('bloqueado-quiz');
+  document.getElementById('btn-prox').title = 'Responda o Desafio para continuar';
+}
+
+function responderQuiz(btn, resposta) {
+  if (quizRespondido) return;
+  quizRespondido = true;
+  const correto = resposta === quizAtual.correta;
+  btn.classList.add(correto ? 'correta' : 'errada');
+
+  // Marcar resposta correta se errou
+  if (!correto) {
+    Array.from(document.querySelectorAll('.quiz-opcao')).forEach(b => {
+      if (b.textContent.trim() === quizAtual.correta) b.classList.add('correta');
+    });
+  }
+
+  const fb = document.getElementById('quiz-feedback');
+  fb.textContent = correto ? '✓ Correto!' : `✗ Incorreto. A resposta correta é: ${quizAtual.correta}`;
+  fb.className = 'quiz-feedback ' + (correto ? 'quiz-fb-ok' : 'quiz-fb-err');
+
+  // Desbloquear próximo
+  const btnP = document.getElementById('btn-prox');
+  btnP.classList.remove('bloqueado-quiz');
+  btnP.title = '';
+}
+
+function ocultarQuiz() {
+  document.getElementById('quiz-box').classList.remove('visivel');
+  document.getElementById('btn-prox').classList.remove('bloqueado-quiz');
+  quizRespondido = false;
+  quizAtual = null;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  CONTROLE
+// ═══════════════════════════════════════════════════════════
+function reiniciar() {
+  clearInterval(timer);
+  timer = null;
+  emExecucao = false;
+  passos = gerarPassos();
+  passoAtual = -1;
+  ocultarQuiz();
+
+  renderizarCodigo(-1, null);
+  renderizarFluxo(null, null);
+  renderizarMemoria({});
+  document.getElementById('aval-painel').innerHTML = '<span class="aval-vazio">— aguardando execução —</span>';
+  renderizarTerminal('');
+  document.getElementById('estado-painel').innerHTML = `<div class="estado-bloco"><div class="estado-linha"><span class="estado-label">Estado:</span><span class="estado-val">Aguardando início</span></div></div>`;
+  document.getElementById('iteracao-badge').textContent = '';
+
+  document.getElementById('btn-exec').disabled = false;
+  document.getElementById('btn-pause').disabled = true;
+  document.getElementById('btn-prox').disabled = modo === 'demo';
+}
+
+function executar() {
+  if (emExecucao) return;
+  emExecucao = true;
+  if (passoAtual < 0) { passos = gerarPassos(); passoAtual = -1; }
+  ocultarQuiz();
+
+  document.getElementById('btn-exec').disabled = true;
+  document.getElementById('btn-pause').disabled = false;
+  document.getElementById('btn-prox').disabled = true;
+
+  if (modo === 'explo' || modo === 'exp' || modo === 'desafio') {
+    // Avança um passo e para
+    avancarPasso();
+    emExecucao = false;
+    document.getElementById('btn-exec').disabled = true;
+    document.getElementById('btn-pause').disabled = true;
+    document.getElementById('btn-prox').disabled = false;
+    if (modo === 'desafio' && passoAtual < passos.length - 1) mostrarQuiz(passoAtual + 1);
+    return;
+  }
+
+  // Modo Demo: executa automaticamente
+  timer = setInterval(() => {
+    if (!avancarPasso()) { clearInterval(timer); emExecucao = false; document.getElementById('btn-pause').disabled = true; }
+  }, velocidade);
+}
+
+function avancarPasso() {
+  if (passoAtual >= passos.length - 1) return false;
+  passoAtual++;
+  aplicarPasso(passoAtual);
+  return passoAtual < passos.length - 1;
+}
+
+function proximoPasso() {
+  if (modo === 'desafio' && quizAtual && !quizRespondido) return; // bloqueado
+  ocultarQuiz();
+  const ok = avancarPasso();
+  if (!ok) {
+    document.getElementById('btn-prox').disabled = true;
+    return;
+  }
+  if (modo === 'desafio' && passoAtual < passos.length - 1) {
+    mostrarQuiz(passoAtual + 1);
+  }
+}
+
+function pausar() {
+  clearInterval(timer);
+  emExecucao = false;
+  document.getElementById('btn-exec').disabled = false;
+  document.getElementById('btn-pause').disabled = true;
+  if (modo !== 'demo') document.getElementById('btn-prox').disabled = false;
+}
+
+function setVel(v) {
+  velocidade = v;
+  document.querySelectorAll('.vel-btn').forEach(b => b.classList.remove('ativo'));
+  event.target.classList.add('ativo');
+  if (emExecucao) { clearInterval(timer); timer = setInterval(() => { if (!avancarPasso()) { clearInterval(timer); emExecucao = false; document.getElementById('btn-pause').disabled = true; } }, velocidade); }
+}
+
+function setModo(m) {
+  modo = m;
+  document.querySelectorAll('.modo-btn').forEach(b => b.classList.remove('ativo'));
+  event.target.classList.add('ativo');
+  document.getElementById('params-bar').classList.toggle('oculto', m !== 'exp');
+  reiniciar();
+
+  // Em exploração/experimento/desafio, liberar próximo
+  if (m !== 'demo') {
+    document.getElementById('btn-prox').disabled = false;
+  }
+}
+
+function aplicarParams() {
+  PARAMS.inicio = parseInt(document.getElementById('p-inicio').value) || 0;
+  PARAMS.limite = parseInt(document.getElementById('p-limite').value) || 5;
+  PARAMS.inc    = parseInt(document.getElementById('p-inc').value)    || 1;
+  reiniciar();
+}
+
+// ── INIT ────────────────────────────────────────────────────
+reiniciar();
+renderizarCodigo(-1, null);
+renderizarFluxo(null, null);
+document.getElementById('btn-prox').disabled = false; // exploração inicial
+</script>
+</body>
+</html>

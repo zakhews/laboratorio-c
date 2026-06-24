@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FOR Aninhado — LVPC</title>
+<style>
+  :root {
+    --bg:       #1e1e1e;
+    --panel:    #252526;
+    --border:   #3c3c3c;
+    --text:     #d4d4d4;
+    --text-dim: #858585;
+    --blue:     #569cd6;
+    --green:    #4ec9b0;
+    --red:      #f44336;
+    --yellow:   #ffe066;
+    --purple:   #c586c0;
+    --orange:   #ce9178;
+    --blue2:    #9cdcfe;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; display: flex; flex-direction: column; }
+
+  .topbar {
+    background: var(--panel); border-bottom: 1px solid var(--border);
+    padding: 10px 20px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+  }
+  .topbar-left { display: flex; align-items: center; gap: 16px; }
+  .back-link { color: var(--text-dim); font-size: 12px; text-decoration: none; }
+  .back-link:hover { color: var(--blue); }
+  .sim-titulo { font-size: 14px; font-weight: 600; }
+  .sim-subtitulo { font-size: 11px; color: var(--text-dim); }
+
+  .modos-bar { background: var(--panel); border-bottom: 1px solid var(--border); padding: 0 20px; display: flex; gap: 2px; }
+  .modo-btn {
+    background: transparent; border: none; border-bottom: 2px solid transparent;
+    color: var(--text-dim); font-size: 12px; padding: 10px 16px; cursor: pointer;
+    transition: color .15s, border-color .15s; font-family: inherit;
+  }
+  .modo-btn:hover { color: var(--text); }
+  .modo-btn.ativo { color: var(--blue); border-bottom-color: var(--blue); }
+
+  .params-bar {
+    background: #1a2a3a; border-bottom: 1px solid #2a4060;
+    padding: 8px 20px; display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+  }
+  .params-bar label { font-size: 12px; color: var(--blue); display: flex; align-items: center; gap: 8px; }
+  .params-bar input[type=number] {
+    background: var(--bg); border: 1px solid var(--border); color: var(--text);
+    font-family: 'Consolas', monospace; font-size: 13px; padding: 4px 8px; width: 60px; border-radius: 3px; outline: none;
+  }
+  .params-bar input:focus { border-color: var(--blue); }
+  .btn-aplicar { background: var(--blue); color: #fff; border: none; padding: 5px 14px; border-radius: 3px; font-size: 12px; cursor: pointer; font-weight: 600; }
+  .params-bar.oculto { display: none; }
+
+  .controles {
+    background: var(--panel); border-bottom: 1px solid var(--border);
+    padding: 8px 20px; display: flex; align-items: center; gap: 8px;
+  }
+  .ctrl-btn {
+    background: #2d2d2d; border: 1px solid var(--border); color: var(--text);
+    padding: 6px 14px; border-radius: 3px; cursor: pointer; font-size: 13px;
+    transition: background .15s, border-color .15s; display: flex; align-items: center; gap: 6px;
+  }
+  .ctrl-btn:hover:not(:disabled) { background: #3a3a3a; border-color: var(--blue); }
+  .ctrl-btn:disabled { opacity: .35; cursor: not-allowed; }
+  .ctrl-btn.primario { background: var(--blue); border-color: var(--blue); color: #fff; }
+  .ctrl-btn.primario:hover:not(:disabled) { background: #4a8cbf; }
+  .ctrl-sep { width: 1px; height: 24px; background: var(--border); margin: 0 4px; }
+  .vel-grupo { display: flex; align-items: center; gap: 4px; margin-left: auto; }
+  .vel-btn { background: transparent; border: 1px solid var(--border); color: var(--text-dim); width: 30px; height: 28px; border-radius: 3px; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center; }
+  .vel-btn.ativo { border-color: var(--yellow); color: var(--yellow); }
+
+  .sim-grid {
+    display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr 1fr;
+    gap: 1px; background: var(--border); flex: 1; min-height: 0;
+  }
+  .painel { background: var(--panel); display: flex; flex-direction: column; overflow: hidden; min-height: 140px; }
+  .painel-titulo { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-dim); padding: 8px 14px 6px; border-bottom: 1px solid var(--border); background: var(--bg); flex-shrink: 0; }
+  .painel-corpo { flex: 1; overflow-y: auto; padding: 12px 14px; }
+
+  /* código */
+  .codigo-linha { font-family: 'Consolas','Courier New',monospace; font-size: 13px; line-height: 1.9; padding: 0 8px; border-left: 3px solid transparent; border-radius: 2px; white-space: pre; transition: background .15s; }
+  .codigo-linha.ativa { background: rgba(255,224,102,.1); border-left-color: var(--yellow); }
+  .ln { color: #555; user-select: none; margin-right: 14px; }
+  .kw { color: var(--purple); }
+  .tp { color: var(--blue); }
+  .num { color: var(--orange); }
+  .fn { color: var(--yellow); }
+  .str { color: var(--orange); }
+  .cmt { color: #6a9955; }
+
+  /* fluxo */
+  .fluxo-wrapper { display: flex; gap: 20px; align-items: flex-start; }
+  .fluxo-col { display: flex; flex-direction: column; align-items: center; flex: 1; }
+  .fluxo-col-titulo { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); margin-bottom: 6px; }
+  .fluxo-node { border: 1px solid var(--border); border-radius: 4px; padding: 7px 12px; font-size: 11px; text-align: center; margin: 0 auto; width: 100%; max-width: 140px; transition: background .2s, border-color .2s, color .2s; font-family: 'Consolas',monospace; }
+  .fluxo-node.ativo { background: rgba(255,224,102,.12); border-color: var(--yellow); color: var(--yellow); font-weight: 700; }
+  .fluxo-node.verde { border-color: var(--green); color: var(--green); }
+  .fluxo-node.vermelho { border-color: var(--red); color: var(--red); }
+  .fluxo-seta { text-align: center; color: var(--text-dim); font-size: 13px; margin: 3px 0; line-height: 1; }
+  .fluxo-divider { width: 1px; background: var(--border); margin: 0 4px; align-self: stretch; }
+
+  /* memória */
+  .mem-secao { margin-bottom: 14px; }
+  .mem-secao-titulo { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); margin-bottom: 6px; }
+  .mem-tabela { border-collapse: collapse; width: 100%; font-family: 'Consolas',monospace; font-size: 13px; }
+  .mem-tabela th { text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); padding: 4px 10px; border-bottom: 1px solid var(--border); }
+  .mem-tabela td { padding: 6px 10px; border-bottom: 1px solid #2a2a2a; }
+  .mem-var { color: var(--blue); }
+  .mem-var.interno { color: var(--blue2); }
+  .mem-val { color: var(--yellow); font-weight: 700; }
+  .mem-tipo { color: var(--text-dim); font-size: 11px; }
+  .mem-linha.ativa td { background: rgba(255,224,102,.07); }
+
+  /* avaliação */
+  .aval-bloco { font-family: 'Consolas',monospace; font-size: 13px; line-height: 2; }
+  .aval-original { color: var(--text-dim); }
+  .aval-subst { color: var(--blue); }
+  .aval-result { font-size: 16px; font-weight: 700; margin-top: 4px; }
+  .aval-true { color: var(--green); }
+  .aval-false { color: var(--red); }
+  .aval-num { color: var(--yellow); }
+  .aval-str { color: var(--orange); }
+  .aval-narracao { margin-top: 10px; font-size: 12px; color: var(--text-dim); font-family: 'Segoe UI',sans-serif; line-height: 1.6; border-left: 2px solid var(--border); padding-left: 10px; font-style: italic; }
+  .aval-vazio { color: var(--text-dim); font-size: 12px; font-style: italic; }
+
+  /* terminal */
+  .terminal-output { font-family: 'Consolas','Courier New',monospace; font-size: 13px; line-height: 1.8; color: var(--green); white-space: pre-wrap; }
+
+  /* estado */
+  .estado-bloco { font-size: 12px; line-height: 1.8; }
+  .estado-linha { display: flex; gap: 8px; margin-bottom: 4px; }
+  .estado-label { color: var(--text-dim); min-width: 90px; }
+  .estado-val { color: var(--text); }
+  .estado-iter { font-family: 'Consolas',monospace; color: var(--yellow); }
+  .estado-prox { color: var(--blue); }
+
+  /* quiz */
+  .quiz-box { background: #1a1a2e; border: 1px solid #2a2a5a; border-radius: 6px; padding: 14px 16px; margin: 10px 14px; display: none; }
+  .quiz-box.visivel { display: block; }
+  .quiz-pergunta { font-size: 13px; color: var(--text); margin-bottom: 10px; font-weight: 600; }
+  .quiz-opcoes { display: flex; flex-direction: column; gap: 6px; }
+  .quiz-opcao { background: #252540; border: 1px solid #3a3a6a; border-radius: 4px; padding: 8px 12px; cursor: pointer; font-size: 12px; font-family: 'Consolas',monospace; color: var(--text); transition: background .15s, border-color .15s; text-align: left; }
+  .quiz-opcao:hover:not(:disabled) { background: #2d2d5a; border-color: var(--blue); }
+  .quiz-opcao.correta { background: #1a3a1a; border-color: var(--green); color: var(--green); }
+  .quiz-opcao.errada  { background: #3a1a1a; border-color: var(--red);   color: var(--red); }
+  .quiz-feedback { font-size: 12px; margin-top: 10px; min-height: 18px; font-style: italic; }
+  .quiz-fb-ok  { color: var(--green); }
+  .quiz-fb-err { color: var(--red); }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <a class="back-link" href="index.html">← LVPC</a>
+    <div>
+      <div class="sim-titulo">🔂 FOR Aninhado</div>
+      <div class="sim-subtitulo">Notas de alunos — loop externo (alunos) · loop interno (notas) · média da turma</div>
+    </div>
+  </div>
+  <span id="iteracao-badge" style="font-family:Consolas,monospace;font-size:12px;color:var(--text-dim)"></span>
+</div>
+
+<div class="modos-bar">
+  <button class="modo-btn ativo" onclick="setModo('demo')">▶ Demonstração</button>
+  <button class="modo-btn" onclick="setModo('explo')">🕹 Exploração</button>
+  <button class="modo-btn" onclick="setModo('exp')">⚙ Experimento</button>
+  <button class="modo-btn" onclick="setModo('desafio')">🎯 Desafio</button>
+</div>
+
+<div class="params-bar oculto" id="params-bar">
+  <label>Nº de alunos
+    <input type="number" id="p-alunos" value="4" min="2" max="8">
+  </label>
+  <label>Nº de notas por aluno
+    <input type="number" id="p-notas" value="4" min="2" max="5">
+  </label>
+  <button class="btn-aplicar" onclick="aplicarParams()">Aplicar e Reiniciar</button>
+  <span style="font-size:11px;color:var(--text-dim)">(notas geradas aleatoriamente)</span>
+</div>
+
+<div class="controles">
+  <button class="ctrl-btn primario" id="btn-exec" onclick="executar()">▶ Executar</button>
+  <button class="ctrl-btn" id="btn-pause" onclick="pausar()" disabled>⏸ Pausar</button>
+  <button class="ctrl-btn" id="btn-prox" onclick="proximoPasso()" disabled>⏭ Próximo</button>
+  <button class="ctrl-btn" id="btn-reiniciar" onclick="reiniciar()">🔄 Reiniciar</button>
+  <div class="ctrl-sep"></div>
+  <div class="vel-grupo">
+    <button class="vel-btn" onclick="setVel(1400)" title="Lento">🐢</button>
+    <button class="vel-btn ativo" onclick="setVel(800)" title="Normal">🚶</button>
+    <button class="vel-btn" onclick="setVel(300)" title="Rápido">🏃</button>
+  </div>
+</div>
+
+<div class="sim-grid">
+
+  <div class="painel">
+    <div class="painel-titulo">Código Fonte</div>
+    <div class="painel-corpo" id="codigo-fonte"></div>
+  </div>
+
+  <div class="painel">
+    <div class="painel-titulo">Fluxo de Execução</div>
+    <div class="painel-corpo" id="fluxo-painel"></div>
+  </div>
+
+  <div class="painel">
+    <div class="painel-titulo">Memória</div>
+    <div class="painel-corpo" id="mem-painel"></div>
+  </div>
+
+  <div class="painel">
+    <div class="painel-titulo">Avaliação Atual</div>
+    <div class="painel-corpo" id="aval-painel">
+      <span class="aval-vazio">— aguardando execução —</span>
+    </div>
+    <div class="quiz-box" id="quiz-box">
+      <div class="quiz-pergunta" id="quiz-pergunta"></div>
+      <div class="quiz-opcoes" id="quiz-opcoes"></div>
+      <div class="quiz-feedback" id="quiz-feedback"></div>
+    </div>
+  </div>
+
+  <div class="painel">
+    <div class="painel-titulo">Terminal</div>
+    <div class="painel-corpo">
+      <div class="terminal-output" id="terminal"></div>
+    </div>
+  </div>
+
+  <div class="painel">
+    <div class="painel-titulo">Estado do Programa</div>
+    <div class="painel-corpo" id="estado-painel"></div>
+  </div>
+
+</div>
+
+<script src="js/config.js"></script>
+<script>
+// ═══════════════════════════════════════════════════════════
+//  PARAMS E DADOS
+// ═══════════════════════════════════════════════════════════
+let PARAMS = { alunos: 4, notasPorAluno: 4 };
+let NOTAS = []; // matriz [aluno][nota]
+let modo = 'demo', velocidade = 800, timer = null, emExecucao = false;
+let passos = [], passoAtual = -1, quizAtual = null, quizRespondido = false;
+
+function gerarNotas() {
+  NOTAS = [];
+  for (let a = 0; a < PARAMS.alunos; a++) {
+    const row = [];
+    for (let n = 0; n < PARAMS.notasPorAluno; n++) {
+      row.push(+(Math.random() * 6 + 4).toFixed(1)); // notas entre 4.0 e 10.0
+    }
+    NOTAS.push(row);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  GERAÇÃO DE PASSOS
+// ═══════════════════════════════════════════════════════════
+function gerarPassos() {
+  const A = PARAMS.alunos, N = PARAMS.notasPorAluno;
+  const p = [];
+
+  // Passo inicial
+  p.push({
+    tipo: 'pre', linhaAtiva: -1,
+    mem: {},
+    aval: null, terminal: '', fluxoAtivo: null,
+    estado: 'Iniciando programa.',
+    proximo: 'Declarar variáveis e inicializar somaTotal.',
+    iterExt: 0, iterInt: 0,
+    narr: 'O programa ainda não iniciou os loops.'
+  });
+
+  p.push({
+    tipo: 'vars', linhaAtiva: 2,
+    mem: { somaTotal: 0.0, mediaAluno: 0.0, mediaTurma: 0.0, i: '—', j: '—' },
+    aval: { orig: 'somaTotal = 0.0', subst: null, res: '0.0', tipo: 'num' },
+    terminal: '', fluxoAtivo: null,
+    estado: 'Declarando variáveis.',
+    proximo: 'Iniciar loop externo (aluno 0).',
+    iterExt: 0, iterInt: 0,
+    narr: 'somaTotal acumulará a soma das médias de todos os alunos. Será dividida pelo número de alunos no final.'
+  });
+
+  let somaTotal = 0.0;
+  let terminal = '';
+
+  for (let i = 0; i < A; i++) {
+    // Init loop externo
+    p.push({
+      tipo: 'ext-init', linhaAtiva: 4,
+      mem: { somaTotal, mediaAluno: 0.0, mediaTurma: 0.0, i, j: '—' },
+      aval: { orig: `i = ${i}`, subst: null, res: String(i), tipo: 'num' },
+      terminal, fluxoAtivo: 'ext-init',
+      estado: `Loop externo: aluno ${i}.`,
+      proximo: `Verificar condição: i < ${A}.`,
+      iterExt: i + 1, iterInt: 0,
+      narr: `O loop externo avança para o aluno ${i}. Vamos coletar suas ${N} notas.`
+    });
+
+    // Cond loop externo
+    p.push({
+      tipo: 'ext-cond', linhaAtiva: 4,
+      mem: { somaTotal, mediaAluno: 0.0, mediaTurma: 0.0, i, j: '—' },
+      aval: { orig: `i < ${A}`, subst: `${i} < ${A}`, res: 'TRUE', tipo: 'true' },
+      terminal, fluxoAtivo: 'ext-cond', condExt: true,
+      estado: `Aluno ${i} de ${A - 1} — condição TRUE.`,
+      proximo: `Iniciar loop interno (notas do aluno ${i}).`,
+      iterExt: i + 1, iterInt: 0,
+      narr: `${i} < ${A} é verdadeiro. Entramos no corpo do loop externo para processar as notas do aluno ${i}.`
+    });
+
+    let somaAluno = 0.0;
+
+    for (let j = 0; j < N; j++) {
+      const nota = NOTAS[i][j];
+
+      // Init loop interno
+      p.push({
+        tipo: 'int-init', linhaAtiva: 6,
+        mem: { somaTotal, mediaAluno: 0.0, mediaTurma: 0.0, i, j },
+        aval: { orig: `j = ${j}`, subst: null, res: String(j), tipo: 'num' },
+        terminal, fluxoAtivo: 'int-init',
+        estado: `Loop interno: nota ${j} do aluno ${i}.`,
+        proximo: `Verificar condição: j < ${N}.`,
+        iterExt: i + 1, iterInt: j + 1,
+        narr: `Dentro do aluno ${i}, iniciamos a nota ${j}. O loop interno percorre cada nota individualmente.`
+      });
+
+      // Cond loop interno
+      p.push({
+        tipo: 'int-cond', linhaAtiva: 6,
+        mem: { somaTotal, mediaAluno: 0.0, mediaTurma: 0.0, i, j },
+        aval: { orig: `j < ${N}`, subst: `${j} < ${N}`, res: 'TRUE', tipo: 'true' },
+        terminal, fluxoAtivo: 'int-cond', condInt: true,
+        estado: `Nota ${j} do aluno ${i} — condição TRUE.`,
+        proximo: `Somar nota[${i}][${j}] = ${nota} à somaAluno.`,
+        iterExt: i + 1, iterInt: j + 1,
+        narr: `${j} < ${N} é verdadeiro. Vamos ler a nota ${j} do aluno ${i}.`
+      });
+
+      // Corpo loop interno: somaAluno
+      somaAluno += nota;
+      somaAluno = +somaAluno.toFixed(2);
+      p.push({
+        tipo: 'int-corpo', linhaAtiva: 7,
+        mem: { somaTotal, mediaAluno: 0.0, mediaTurma: 0.0, i, j, somaAluno, 'nota[i][j]': nota },
+        aval: { orig: `somaAluno += nota[${i}][${j}]`, subst: `somaAluno = ${(somaAluno - nota).toFixed(2)} + ${nota}`, res: somaAluno.toFixed(2), tipo: 'num' },
+        terminal, fluxoAtivo: 'int-corpo',
+        estado: `Somando nota ${nota} à somaAluno.`,
+        proximo: `Incrementar j (j++).`,
+        iterExt: i + 1, iterInt: j + 1,
+        narr: `A nota ${nota} é somada. somaAluno agora vale ${somaAluno.toFixed(2)}.`
+      });
+
+      // Inc loop interno
+      p.push({
+        tipo: 'int-inc', linhaAtiva: 6,
+        mem: { somaTotal, mediaAluno: 0.0, mediaTurma: 0.0, i, j: j + 1, somaAluno, 'nota[i][j]': nota },
+        aval: { orig: 'j++', subst: `j = ${j} + 1`, res: String(j + 1), tipo: 'num' },
+        terminal, fluxoAtivo: 'int-inc',
+        estado: `j passa de ${j} para ${j + 1}.`,
+        proximo: j + 1 < N ? `Verificar condição: ${j + 1} < ${N}.` : `Condição falsa — calcular média do aluno ${i}.`,
+        iterExt: i + 1, iterInt: j + 1,
+        narr: `j é incrementado. ${j + 1 < N ? `Ainda há ${N - j - 1} nota(s) para o aluno ${i}.` : `Todas as ${N} notas do aluno ${i} foram somadas.`}`
+      });
+    }
+
+    // Cond loop interno FALSE (saída)
+    p.push({
+      tipo: 'int-cond-fim', linhaAtiva: 6,
+      mem: { somaTotal, mediaAluno: 0.0, mediaTurma: 0.0, i, j: N, somaAluno },
+      aval: { orig: `j < ${N}`, subst: `${N} < ${N}`, res: 'FALSE', tipo: 'false' },
+      terminal, fluxoAtivo: 'int-cond', condInt: false,
+      estado: `Loop interno encerrado para aluno ${i}.`,
+      proximo: `Calcular média do aluno ${i}.`,
+      iterExt: i + 1, iterInt: N,
+      narr: `${N} não é menor que ${N}. O loop interno encerra e calculamos a média do aluno.`
+    });
+
+    // Média do aluno
+    const mediaAluno = +(somaAluno / N).toFixed(2);
+    terminal += `Aluno ${i}: média = ${mediaAluno.toFixed(2)}\n`;
+    p.push({
+      tipo: 'media-aluno', linhaAtiva: 9,
+      mem: { somaTotal, mediaAluno, mediaTurma: 0.0, i, j: N, somaAluno },
+      aval: { orig: `mediaAluno = somaAluno / ${N}`, subst: `mediaAluno = ${somaAluno.toFixed(2)} / ${N}`, res: mediaAluno.toFixed(2), tipo: 'num' },
+      terminal, fluxoAtivo: 'media-aluno',
+      estado: `Média do aluno ${i} = ${mediaAluno.toFixed(2)}.`,
+      proximo: `Somar ${mediaAluno.toFixed(2)} à somaTotal.`,
+      iterExt: i + 1, iterInt: N,
+      narr: `A somaAluno (${somaAluno.toFixed(2)}) é dividida por ${N} notas. Resultado: ${mediaAluno.toFixed(2)}.`
+    });
+
+    // Acumula somaTotal
+    somaTotal += mediaAluno;
+    somaTotal = +somaTotal.toFixed(2);
+    p.push({
+      tipo: 'soma-total', linhaAtiva: 10,
+      mem: { somaTotal, mediaAluno, mediaTurma: 0.0, i, j: N },
+      aval: { orig: 'somaTotal += mediaAluno', subst: `somaTotal = ${(somaTotal - mediaAluno).toFixed(2)} + ${mediaAluno.toFixed(2)}`, res: somaTotal.toFixed(2), tipo: 'num' },
+      terminal, fluxoAtivo: 'soma-total',
+      estado: `somaTotal acumulada: ${somaTotal.toFixed(2)}.`,
+      proximo: `Incrementar i (próximo aluno).`,
+      iterExt: i + 1, iterInt: N,
+      narr: `A média do aluno ${i} entra no acumulador somaTotal. Quando processarmos todos os alunos, dividimos pelo total.`
+    });
+
+    // Inc loop externo
+    p.push({
+      tipo: 'ext-inc', linhaAtiva: 4,
+      mem: { somaTotal, mediaAluno, mediaTurma: 0.0, i: i + 1, j: N },
+      aval: { orig: 'i++', subst: `i = ${i} + 1`, res: String(i + 1), tipo: 'num' },
+      terminal, fluxoAtivo: 'ext-inc',
+      estado: `i passa de ${i} para ${i + 1}.`,
+      proximo: i + 1 < A ? `Verificar condição: ${i + 1} < ${A}.` : `Condição falsa — calcular média da turma.`,
+      iterExt: i + 1, iterInt: 0,
+      narr: `Passamos para o próximo aluno. ${i + 1 < A ? `Ainda faltam ${A - i - 1} aluno(s).` : `Todos os alunos foram processados.`}`
+    });
+  }
+
+  // Cond loop externo FALSE
+  p.push({
+    tipo: 'ext-cond-fim', linhaAtiva: 4,
+    mem: { somaTotal, mediaAluno: 0.0, mediaTurma: 0.0, i: A, j: '—' },
+    aval: { orig: `i < ${A}`, subst: `${A} < ${A}`, res: 'FALSE', tipo: 'false' },
+    terminal, fluxoAtivo: 'ext-cond', condExt: false,
+    estado: 'Loop externo encerrado.',
+    proximo: 'Calcular média da turma.',
+    iterExt: A, iterInt: 0,
+    narr: `${A} não é menor que ${A}. O loop externo encerra. Agora calculamos a média geral da turma.`
+  });
+
+  // Média da turma
+  const mediaTurma = +(somaTotal / A).toFixed(2);
+  terminal += `\nMédia da turma: ${mediaTurma.toFixed(2)}\n`;
+  p.push({
+    tipo: 'media-turma', linhaAtiva: 13,
+    mem: { somaTotal, mediaAluno: 0.0, mediaTurma, i: A, j: '—' },
+    aval: { orig: `mediaTurma = somaTotal / ${A}`, subst: `mediaTurma = ${somaTotal.toFixed(2)} / ${A}`, res: mediaTurma.toFixed(2), tipo: 'num' },
+    terminal, fluxoAtivo: 'media-turma',
+    estado: `Média da turma = ${mediaTurma.toFixed(2)}.`,
+    proximo: 'Exibir resultado e encerrar.',
+    iterExt: A, iterInt: 0,
+    narr: `A somaTotal (${somaTotal.toFixed(2)}) é dividida por ${A} alunos. A média geral da turma é ${mediaTurma.toFixed(2)}.`
+  });
+
+  p.push({
+    tipo: 'fim', linhaAtiva: 14,
+    mem: { somaTotal, mediaAluno: 0.0, mediaTurma, i: A, j: '—' },
+    aval: null, terminal, fluxoAtivo: 'fim',
+    estado: 'Programa encerrado.',
+    proximo: '—',
+    iterExt: A, iterInt: 0,
+    narr: `Pronto! Processamos ${A} alunos × ${N} notas = ${A * N} leituras no total.`
+  });
+
+  return p;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  RENDERIZAÇÃO
+// ═══════════════════════════════════════════════════════════
+function renderizarCodigo(linhaAtiva) {
+  const A = PARAMS.alunos, N = PARAMS.notasPorAluno;
+  const linhas = [
+    `<span class="kw">int</span> <span class="tp">main</span>() {`,
+    ``,
+    `    <span class="kw">float</span> somaTotal = <span class="num">0.0</span>, mediaAluno, mediaTurma;`,
+    `    <span class="kw">float</span> nota[<span class="num">${A}</span>][<span class="num">${N}</span>] = { <span class="cmt">/* valores */</span> };`,
+    ``,
+    `    <span class="kw">for</span>(<span class="kw">int</span> i = <span class="num">0</span>; i &lt; <span class="num">${A}</span>; i++) {   <span class="cmt">// loop externo: alunos</span>`,
+    `        mediaAluno = <span class="num">0.0</span>;`,
+    `        <span class="kw">for</span>(<span class="kw">int</span> j = <span class="num">0</span>; j &lt; <span class="num">${N}</span>; j++) {  <span class="cmt">// loop interno: notas</span>`,
+    `            mediaAluno += nota[i][j];`,
+    `        }`,
+    `        mediaAluno /= <span class="num">${N}</span>;`,
+    `        somaTotal += mediaAluno;`,
+    `        <span class="fn">printf</span>(<span class="str">"Aluno %d: %.2f\\n"</span>, i, mediaAluno);`,
+    `    }`,
+    ``,
+    `    mediaTurma = somaTotal / <span class="num">${A}</span>;`,
+    `    <span class="fn">printf</span>(<span class="str">"Media turma: %.2f\\n"</span>, mediaTurma);`,
+    `    <span class="kw">return</span> <span class="num">0</span>;`,
+    `}`
+  ];
+  // Mapeamento linha lógica → linha display
+  const mapaLinhas = { '-1': -1, '2': 2, '4': 5, '6': 7, '7': 8, '9': 10, '10': 11, '12': 12, '13': 15, '14': 17 };
+  const displayAtiva = mapaLinhas[String(linhaAtiva)] ?? -1;
+  document.getElementById('codigo-fonte').innerHTML = linhas.map((txt, idx) => {
+    const ativa = idx === displayAtiva ? 'ativa' : '';
+    return `<div class="codigo-linha ${ativa}"><span class="ln">${String(idx+1).padStart(2,' ')}</span>${txt}</div>`;
+  }).join('');
+}
+
+function renderizarFluxo(ativo, condExt, condInt) {
+  const n = (id, label, extra='') => `<div class="fluxo-node ${ativo === id ? 'ativo' : ''} ${extra}">${label}</div>`;
+  const seta = () => `<div class="fluxo-seta">↓</div>`;
+  const setaUp = (txt) => `<div class="fluxo-seta" style="color:var(--blue);font-size:11px">${txt}</div>`;
+
+  const colExt = `
+    <div class="fluxo-col">
+      <div class="fluxo-col-titulo" style="color:var(--blue)">Loop Externo (alunos)</div>
+      ${n('ext-init','i = 0')}${seta()}
+      ${n('ext-cond', condExt === false ? 'i &lt; N → FALSE' : 'i &lt; N → TRUE', condExt === false ? 'vermelho' : condExt === true ? 'verde' : '')}${seta()}
+      ${n('media-aluno','Calc. média aluno')}${seta()}
+      ${n('soma-total','somaTotal +=')}${seta()}
+      ${n('ext-inc','i++')}
+      ${setaUp('↑ volta ao teste')}
+      ${n('media-turma','Calc. média turma')}${seta()}
+      ${n('fim','Encerrado','vermelho')}
+    </div>
+  `;
+
+  const colInt = `
+    <div class="fluxo-col">
+      <div class="fluxo-col-titulo" style="color:var(--blue2)">Loop Interno (notas)</div>
+      ${n('int-init','j = 0')}${seta()}
+      ${n('int-cond', condInt === false ? 'j &lt; N → FALSE' : 'j &lt; N → TRUE', condInt === false ? 'vermelho' : condInt === true ? 'verde' : '')}${seta()}
+      ${n('int-corpo','somaAluno +=')}${seta()}
+      ${n('int-inc','j++')}
+      ${setaUp('↑ volta ao teste')}
+    </div>
+  `;
+
+  document.getElementById('fluxo-painel').innerHTML = `
+    <div class="fluxo-wrapper">${colExt}<div class="fluxo-divider"></div>${colInt}</div>
+  `;
+}
+
+function renderizarMemoria(mem) {
+  const externas = ['somaTotal', 'mediaAluno', 'mediaTurma', 'i'];
+  const internas = ['j', 'somaAluno', 'nota[i][j]'];
+
+  const rowsExt = externas.filter(k => k in mem).map(k => `
+    <tr class="mem-linha ativa">
+      <td class="mem-var">${k}</td>
+      <td class="mem-tipo">float/int</td>
+      <td class="mem-val">${typeof mem[k] === 'number' ? (Number.isInteger(mem[k]) ? mem[k] : mem[k].toFixed(2)) : mem[k]}</td>
+    </tr>`).join('');
+
+  const rowsInt = internas.filter(k => k in mem).map(k => `
+    <tr class="mem-linha ativa">
+      <td class="mem-var interno">${k}</td>
+      <td class="mem-tipo">float/int</td>
+      <td class="mem-val">${typeof mem[k] === 'number' ? (Number.isInteger(mem[k]) ? mem[k] : mem[k].toFixed(2)) : mem[k]}</td>
+    </tr>`).join('');
+
+  // Mostra matriz de notas se disponível
+  const matrizHTML = NOTAS.length ? `
+    <div class="mem-secao" style="margin-top:12px">
+      <div class="mem-secao-titulo">nota[${PARAMS.alunos}][${PARAMS.notasPorAluno}]</div>
+      <div style="font-family:'Consolas',monospace;font-size:11px;color:var(--text-dim)">
+        ${NOTAS.map((row, i) => `<div>[${i}] ${row.join('  ')}</div>`).join('')}
+      </div>
+    </div>` : '';
+
+  document.getElementById('mem-painel').innerHTML = `
+    <div class="mem-secao">
+      <div class="mem-secao-titulo" style="color:var(--blue)">Variáveis do loop externo</div>
+      <table class="mem-tabela"><thead><tr><th>Var</th><th>Tipo</th><th>Valor</th></tr></thead>
+      <tbody>${rowsExt || '<tr><td colspan="3" style="color:var(--text-dim);font-style:italic;padding:8px 10px">—</td></tr>'}</tbody></table>
+    </div>
+    ${rowsInt ? `<div class="mem-secao" style="margin-top:8px">
+      <div class="mem-secao-titulo" style="color:var(--blue2)">Variáveis do loop interno</div>
+      <table class="mem-tabela"><thead><tr><th>Var</th><th>Tipo</th><th>Valor</th></tr></thead>
+      <tbody>${rowsInt}</tbody></table>
+    </div>` : ''}
+    ${matrizHTML}
+  `;
+}
+
+function renderizarAval(aval, narr) {
+  const el = document.getElementById('aval-painel');
+  if (!aval) { el.innerHTML = '<span class="aval-vazio">— aguardando avaliação —</span>'; return; }
+  const resClass = aval.tipo === 'true' ? 'aval-true' : aval.tipo === 'false' ? 'aval-false' : aval.tipo === 'str' ? 'aval-str' : 'aval-num';
+  el.innerHTML = `
+    <div class="aval-bloco">
+      <div class="aval-original">${aval.orig}</div>
+      ${aval.subst ? `<div class="aval-subst">${aval.subst}</div>` : ''}
+      <div class="aval-result ${resClass}">${aval.res}</div>
+    </div>
+    ${narr ? `<div class="aval-narracao">${narr}</div>` : ''}
+  `;
+}
+
+function renderizarEstado(p) {
+  document.getElementById('estado-painel').innerHTML = `
+    <div class="estado-bloco">
+      <div class="estado-linha"><span class="estado-label">Aluno (i):</span><span class="estado-iter">${p.iterExt || '—'} / ${PARAMS.alunos}</span></div>
+      <div class="estado-linha"><span class="estado-label">Nota (j):</span><span class="estado-iter">${p.iterInt || '—'} / ${PARAMS.notasPorAluno}</span></div>
+      <div class="estado-linha"><span class="estado-label">Estado:</span><span class="estado-val">${p.estado}</span></div>
+      <div class="estado-linha"><span class="estado-label">Próximo:</span><span class="estado-prox">${p.proximo}</span></div>
+    </div>
+  `;
+  document.getElementById('iteracao-badge').textContent =
+    p.tipo === 'fim' ? '✓ Concluído' : `Aluno ${p.iterExt}/${PARAMS.alunos}`;
+}
+
+function aplicarPasso(idx) {
+  if (idx < 0 || idx >= passos.length) return;
+  const p = passos[idx];
+  renderizarCodigo(p.linhaAtiva);
+  renderizarFluxo(p.fluxoAtivo, p.condExt, p.condInt);
+  renderizarMemoria(p.mem);
+  renderizarAval(p.aval, p.narr);
+  document.getElementById('terminal').textContent = p.terminal || '';
+  renderizarEstado(p);
+  if (p.tipo === 'fim') localStorage.setItem('lvpc_concluido_for-aninhado', '1');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  QUIZ
+// ═══════════════════════════════════════════════════════════
+function gerarQuiz(idxProximo) {
+  if (idxProximo >= passos.length) return null;
+  const p = passos[idxProximo];
+  const A = PARAMS.alunos, N = PARAMS.notasPorAluno;
+
+  if (p.tipo === 'ext-cond' && p.condExt !== false) {
+    const i = p.mem.i;
+    return {
+      pergunta: `O loop externo está testando <code style="color:var(--blue)">${i} < ${A}</code>. Qual o resultado?`,
+      opcoes: embaralhar(['TRUE', 'FALSE', String(i)]),
+      correta: 'TRUE'
+    };
+  }
+  if (p.tipo === 'int-cond' && p.condInt !== false) {
+    const j = p.mem.j;
+    return {
+      pergunta: `O loop interno testa <code style="color:var(--blue2)">${j} < ${N}</code>. Qual o resultado?`,
+      opcoes: embaralhar(['TRUE', 'FALSE', String(j)]),
+      correta: 'TRUE'
+    };
+  }
+  if (p.tipo === 'int-cond-fim') {
+    return {
+      pergunta: `Quantas notas foram somadas para este aluno até aqui?`,
+      opcoes: embaralhar([String(N), String(N - 1), String(N + 1)]),
+      correta: String(N)
+    };
+  }
+  if (p.tipo === 'media-aluno') {
+    const i = p.mem.i;
+    const soma = p.mem.somaAluno;
+    const med = (soma / N).toFixed(2);
+    return {
+      pergunta: `somaAluno = ${soma?.toFixed(2)} ÷ ${N} notas. Qual a média do aluno ${i}?`,
+      opcoes: embaralhar([med, (soma / (N + 1)).toFixed(2), (soma * N).toFixed(2)]),
+      correta: med
+    };
+  }
+  return null;
+}
+
+function embaralhar(arr) { return [...arr].sort(() => Math.random() - .5); }
+
+function mostrarQuiz(idx) {
+  quizAtual = gerarQuiz(idx);
+  const box = document.getElementById('quiz-box');
+  if (!quizAtual) { box.classList.remove('visivel'); return; }
+  box.classList.add('visivel');
+  document.getElementById('quiz-pergunta').innerHTML = quizAtual.pergunta;
+  document.getElementById('quiz-feedback').textContent = '';
+  document.getElementById('quiz-feedback').className = 'quiz-feedback';
+  quizRespondido = false;
+  document.getElementById('quiz-opcoes').innerHTML = quizAtual.opcoes.map(op =>
+    `<button class="quiz-opcao" onclick="responderQuiz(this,'${String(op).replace(/'/g,"&#39;")}')">${op}</button>`
+  ).join('');
+  document.getElementById('btn-prox').classList.add('bloqueado-quiz');
+}
+
+function responderQuiz(btn, resposta) {
+  if (quizRespondido) return;
+  quizRespondido = true;
+  const correto = resposta === quizAtual.correta;
+  btn.classList.add(correto ? 'correta' : 'errada');
+  if (!correto) Array.from(document.querySelectorAll('.quiz-opcao')).forEach(b => { if (b.textContent.trim() === quizAtual.correta) b.classList.add('correta'); });
+  const fb = document.getElementById('quiz-feedback');
+  fb.textContent = correto ? '✓ Correto!' : `✗ A resposta correta é: ${quizAtual.correta}`;
+  fb.className = 'quiz-feedback ' + (correto ? 'quiz-fb-ok' : 'quiz-fb-err');
+  document.getElementById('btn-prox').classList.remove('bloqueado-quiz');
+}
+
+function ocultarQuiz() {
+  document.getElementById('quiz-box').classList.remove('visivel');
+  document.getElementById('btn-prox').classList.remove('bloqueado-quiz');
+  quizRespondido = false; quizAtual = null;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  CONTROLE
+// ═══════════════════════════════════════════════════════════
+function reiniciar() {
+  clearInterval(timer); timer = null; emExecucao = false;
+  gerarNotas();
+  passos = gerarPassos(); passoAtual = -1;
+  ocultarQuiz();
+  renderizarCodigo(-1);
+  renderizarFluxo(null);
+  renderizarMemoria({});
+  document.getElementById('aval-painel').innerHTML = '<span class="aval-vazio">— aguardando execução —</span>';
+  document.getElementById('terminal').textContent = '';
+  document.getElementById('estado-painel').innerHTML = `<div class="estado-bloco"><div class="estado-linha"><span class="estado-label">Estado:</span><span class="estado-val">Aguardando início</span></div></div>`;
+  document.getElementById('iteracao-badge').textContent = '';
+  document.getElementById('btn-exec').disabled = false;
+  document.getElementById('btn-pause').disabled = true;
+  document.getElementById('btn-prox').disabled = modo === 'demo';
+}
+
+function executar() {
+  if (emExecucao) return;
+  emExecucao = true; ocultarQuiz();
+  document.getElementById('btn-exec').disabled = true;
+  document.getElementById('btn-pause').disabled = false;
+  document.getElementById('btn-prox').disabled = true;
+
+  if (modo !== 'demo') {
+    avancarPasso(); emExecucao = false;
+    document.getElementById('btn-exec').disabled = true;
+    document.getElementById('btn-pause').disabled = true;
+    document.getElementById('btn-prox').disabled = false;
+    if (modo === 'desafio' && passoAtual < passos.length - 1) mostrarQuiz(passoAtual + 1);
+    return;
+  }
+  timer = setInterval(() => { if (!avancarPasso()) { clearInterval(timer); emExecucao = false; document.getElementById('btn-pause').disabled = true; } }, velocidade);
+}
+
+function avancarPasso() {
+  if (passoAtual >= passos.length - 1) return false;
+  passoAtual++; aplicarPasso(passoAtual);
+  return passoAtual < passos.length - 1;
+}
+
+function proximoPasso() {
+  if (quizAtual && !quizRespondido) return;
+  ocultarQuiz();
+  const ok = avancarPasso();
+  if (!ok) { document.getElementById('btn-prox').disabled = true; return; }
+  if (modo === 'desafio' && passoAtual < passos.length - 1) mostrarQuiz(passoAtual + 1);
+}
+
+function pausar() {
+  clearInterval(timer); emExecucao = false;
+  document.getElementById('btn-exec').disabled = false;
+  document.getElementById('btn-pause').disabled = true;
+  if (modo !== 'demo') document.getElementById('btn-prox').disabled = false;
+}
+
+function setVel(v) {
+  velocidade = v;
+  document.querySelectorAll('.vel-btn').forEach(b => b.classList.remove('ativo'));
+  event.target.classList.add('ativo');
+  if (emExecucao) { clearInterval(timer); timer = setInterval(() => { if (!avancarPasso()) { clearInterval(timer); emExecucao = false; document.getElementById('btn-pause').disabled = true; } }, velocidade); }
+}
+
+function setModo(m) {
+  modo = m;
+  document.querySelectorAll('.modo-btn').forEach(b => b.classList.remove('ativo'));
+  event.target.classList.add('ativo');
+  document.getElementById('params-bar').classList.toggle('oculto', m !== 'exp');
+  reiniciar();
+  if (m !== 'demo') document.getElementById('btn-prox').disabled = false;
+}
+
+function aplicarParams() {
+  PARAMS.alunos = parseInt(document.getElementById('p-alunos').value) || 4;
+  PARAMS.notasPorAluno = parseInt(document.getElementById('p-notas').value) || 4;
+  reiniciar();
+}
+
+// INIT
+reiniciar();
+document.getElementById('btn-prox').disabled = false;
+</script>
+</body>
+</html>

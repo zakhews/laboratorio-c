@@ -3,300 +3,574 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Laboratório Visual de Programação em C</title>
-
+<title>LVPC — Laboratório Visual de Programação em C</title>
 <style>
-:root{
-    --bg:#1e1e1e;
-    --panel:#252526;
-    --border:#3c3c3c;
-    --text:#d4d4d4;
-    --title:#61dafb;
-    --green:#4ec9b0;
-    --yellow:#ffe066;
-    --red:#f44336;
-    --blue:#569cd6;
-}
+  :root {
+    --bg:       #1e1e1e;
+    --panel:    #252526;
+    --border:   #3c3c3c;
+    --text:     #d4d4d4;
+    --text-dim: #858585;
+    --blue:     #569cd6;
+    --green:    #4ec9b0;
+    --red:      #f44336;
+    --yellow:   #ffe066;
+    --purple:   #c586c0;
+    --orange:   #ce9178;
+  }
 
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-}
+  * { box-sizing: border-box; margin: 0; padding: 0; }
 
-body{
-    background:var(--bg);
-    color:var(--text);
-    font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;
-    min-height:100vh;
-    display:flex;
-    justify-content:center;
-    align-items:flex-start;
-    padding:40px 20px;
-}
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    min-height: 100vh;
+  }
 
-.container{
-    width:100%;
-    max-width:1000px;
-}
+  /* ── HEADER ── */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 28px 48px 24px;
+    display: flex;
+    align-items: flex-end;
+    gap: 24px;
+  }
+  .logo-block { display: flex; flex-direction: column; gap: 4px; }
+  .logo-sigla {
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 13px;
+    color: var(--blue);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+  }
+  .logo-titulo {
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1;
+  }
+  .logo-versao {
+    font-family: 'Consolas', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 2px;
+  }
+  .header-tagline {
+    font-size: 13px;
+    color: var(--text-dim);
+    border-left: 1px solid var(--border);
+    padding-left: 24px;
+    line-height: 1.6;
+    max-width: 420px;
+  }
 
-header{
-    text-align:center;
-    margin-bottom:40px;
-}
+  /* ── MAIN ── */
+  main { padding: 40px 48px 60px; max-width: 1100px; }
 
-header h1{
-    color:var(--title);
-    font-size:2.3rem;
-    margin-bottom:10px;
-}
+  /* ── SEÇÃO: MISSÃO ── */
+  .missao {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--blue);
+    border-radius: 4px;
+    padding: 16px 20px;
+    margin-bottom: 40px;
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--text-dim);
+  }
+  .missao strong { color: var(--blue); }
 
-header p{
-    color:#999;
-    font-size:1rem;
-}
+  /* ── TRILHA ── */
+  .trilha-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  .trilha-titulo {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+  }
+  .btn-codigo {
+    font-family: 'Consolas', monospace;
+    font-size: 12px;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    padding: 6px 14px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: border-color .2s, color .2s;
+  }
+  .btn-codigo:hover { border-color: var(--blue); color: var(--blue); }
 
-.section{
-    margin-bottom:35px;
-}
+  /* ── MAPA DE TRILHA ── */
+  .trilha-mapa {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    margin-bottom: 48px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+  }
+  .trilha-item {
+    display: flex;
+    align-items: center;
+  }
+  .modulo-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px 16px;
+    width: 130px;
+    min-width: 130px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color .2s, transform .15s;
+    position: relative;
+    text-decoration: none;
+    display: block;
+  }
+  .modulo-card.disponivel:hover {
+    border-color: var(--blue);
+    transform: translateY(-2px);
+  }
+  .modulo-card.bloqueado {
+    opacity: .45;
+    cursor: not-allowed;
+  }
+  .modulo-card.concluido {
+    border-color: var(--green);
+    opacity: .75;
+  }
+  .modulo-icone { font-size: 22px; margin-bottom: 6px; }
+  .modulo-fase {
+    font-family: 'Consolas', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-bottom: 4px;
+  }
+  .modulo-nome {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.3;
+    margin-bottom: 8px;
+  }
+  .modulo-badge {
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    display: inline-block;
+  }
+  .badge-disponivel { background: #1a3a2a; color: var(--green); }
+  .badge-bloqueado  { background: #2a2a2a; color: var(--text-dim); }
+  .badge-concluido  { background: #1a3a2a; color: var(--green); }
 
-.section-title{
-    font-size:1.2rem;
-    margin-bottom:15px;
-    color:#ddd;
-    border-bottom:1px solid var(--border);
-    padding-bottom:8px;
-}
+  /* Conectores entre cards */
+  .trilha-conector {
+    width: 28px;
+    min-width: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .conector-linha {
+    width: 100%;
+    height: 2px;
+    background: var(--border);
+    position: relative;
+  }
+  .conector-linha::after {
+    content: '';
+    position: absolute;
+    right: -5px;
+    top: -4px;
+    border: 5px solid transparent;
+    border-left-color: var(--border);
+  }
 
-.modules{
-    display:grid;
-    grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
-    gap:15px;
-}
+  /* ── CARDS DE MÓDULOS ATIVOS ── */
+  .secao-titulo {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    margin-bottom: 16px;
+  }
+  .modulos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+    margin-bottom: 48px;
+  }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 20px 22px;
+    text-decoration: none;
+    display: block;
+    transition: border-color .2s, transform .15s;
+  }
+  .card:hover {
+    border-color: var(--blue);
+    transform: translateY(-2px);
+  }
+  .card-topo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+  .card-icone { font-size: 24px; }
+  .card-titulo {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--blue);
+  }
+  .card-fase {
+    font-family: 'Consolas', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+  }
+  .card-descricao {
+    font-size: 13px;
+    color: var(--text-dim);
+    line-height: 1.6;
+    margin-bottom: 14px;
+  }
+  .card-modos {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .modo-tag {
+    font-size: 10px;
+    font-family: 'Consolas', monospace;
+    background: #2d2d2d;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    padding: 2px 8px;
+    border-radius: 3px;
+  }
+  .modo-tag.ativo { color: var(--yellow); border-color: #4a4500; background: #2a2500; }
 
-.module{
-    background:var(--panel);
-    border:1px solid var(--border);
-    border-radius:8px;
-    padding:18px;
-    transition:0.2s;
-}
+  /* ── PILARES ── */
+  .pilares-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    margin-bottom: 48px;
+  }
+  .pilar {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px;
+    text-align: center;
+  }
+  .pilar-num {
+    font-family: 'Consolas', monospace;
+    font-size: 18px;
+    color: var(--blue);
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .pilar-nome {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+  }
+  .pilar-desc {
+    font-size: 11px;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
 
-.module.enabled:hover{
-    transform:translateY(-3px);
-    border-color:var(--blue);
-}
+  /* ── MODAL CÓDIGO ── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.7);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.aberto { display: flex; }
+  .modal {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-top: 2px solid var(--blue);
+    border-radius: 6px;
+    padding: 28px 32px;
+    width: 360px;
+    max-width: 90vw;
+  }
+  .modal h2 { font-size: 15px; margin-bottom: 6px; color: var(--text); }
+  .modal p  { font-size: 12px; color: var(--text-dim); margin-bottom: 18px; line-height: 1.5; }
+  .modal input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'Consolas', monospace;
+    font-size: 14px;
+    letter-spacing: 2px;
+    padding: 10px 14px;
+    border-radius: 4px;
+    outline: none;
+    margin-bottom: 14px;
+    text-transform: uppercase;
+  }
+  .modal input:focus { border-color: var(--blue); }
+  .modal-botoes { display: flex; gap: 10px; justify-content: flex-end; }
+  .btn-confirmar {
+    background: var(--blue);
+    color: #fff;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .btn-cancelar {
+    background: transparent;
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+  }
+  .modal-msg {
+    font-size: 12px;
+    min-height: 16px;
+    margin-bottom: 8px;
+    font-family: 'Consolas', monospace;
+  }
+  .msg-ok  { color: var(--green); }
+  .msg-err { color: var(--red); }
 
-.module a{
-    text-decoration:none;
-    color:inherit;
-    display:block;
-}
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 16px 48px;
+    font-size: 11px;
+    color: var(--text-dim);
+    font-family: 'Consolas', monospace;
+    display: flex;
+    justify-content: space-between;
+  }
 
-.module-title{
-    font-size:1.05rem;
-    font-weight:bold;
-    margin-bottom:8px;
-}
-
-.module-desc{
-    color:#aaa;
-    font-size:0.9rem;
-    line-height:1.4;
-}
-
-.enabled .status{
-    color:var(--green);
-}
-
-.locked{
-    opacity:0.55;
-}
-
-.locked .status{
-    color:var(--yellow);
-}
-
-footer{
-    text-align:center;
-    margin-top:50px;
-    color:#777;
-    font-size:0.85rem;
-}
-
-.badge{
-    display:inline-block;
-    padding:4px 8px;
-    border-radius:4px;
-    margin-bottom:10px;
-    font-size:0.8rem;
-    font-weight:bold;
-}
-
-.badge-open{
-    background:rgba(78,201,176,.15);
-    color:var(--green);
-}
-
-.badge-lock{
-    background:rgba(255,224,102,.12);
-    color:var(--yellow);
-}
+  @media (max-width: 700px) {
+    header { padding: 20px 20px 18px; flex-direction: column; align-items: flex-start; gap: 12px; }
+    .header-tagline { border-left: none; padding-left: 0; border-top: 1px solid var(--border); padding-top: 12px; }
+    main { padding: 24px 20px 40px; }
+    .pilares-grid { grid-template-columns: repeat(2, 1fr); }
+    footer { padding: 14px 20px; flex-direction: column; gap: 4px; }
+  }
 </style>
 </head>
-
 <body>
 
-<div class="container">
-
 <header>
-    <h1>Laboratório Visual de Programação em C</h1>
-
-    <p>
-        Ambiente interativo para visualizar a execução de algoritmos,
-        estruturas de repetição e manipulação de dados em linguagem C.
-    </p>
+  <div class="logo-block">
+    <span class="logo-sigla">LVPC</span>
+    <span class="logo-titulo">Laboratório Visual de Programação em C</span>
+    <span class="logo-versao">v1.0 — IFPR</span>
+  </div>
+  <p class="header-tagline">
+    Visualize o que acontece <strong style="color:var(--text)">dentro</strong> do programa —
+    código, memória, fluxo e decisões em tempo real, passo a passo.
+  </p>
 </header>
 
-<section class="section">
+<main>
 
-    <div class="section-title">
-        Fundamentos
+  <div class="missao">
+    <strong>Como usar:</strong> selecione um módulo disponível e escolha seu modo de estudo.
+    <em>Demonstração</em> executa automaticamente. <em>Exploração</em> deixa você controlar cada passo.
+    <em>Experimento</em> permite alterar os parâmetros do código.
+    <em>Desafio</em> pede que você preveja o próximo resultado antes de avançar.
+  </div>
+
+  <!-- TRILHA -->
+  <div class="trilha-header">
+    <span class="trilha-titulo">Trilha de Aprendizagem</span>
+    <button class="btn-codigo" onclick="abrirModal()">🔑 Inserir código de acesso</button>
+  </div>
+
+  <div class="trilha-mapa" id="trilha-mapa">
+    <!-- gerado por JS -->
+  </div>
+
+  <!-- MÓDULOS DISPONÍVEIS -->
+  <p class="secao-titulo">Módulos disponíveis</p>
+  <div class="modulos-grid" id="modulos-grid">
+    <!-- gerado por JS -->
+  </div>
+
+  <!-- PILARES -->
+  <p class="secao-titulo">Pilares pedagógicos</p>
+  <div class="pilares-grid">
+    <div class="pilar">
+      <div class="pilar-num">01</div>
+      <div class="pilar-nome">Visualização</div>
+      <div class="pilar-desc">Todo conceito tem representação visual correspondente.</div>
     </div>
-
-    <div class="modules">
-
-        <div class="module enabled">
-            <a href="simuladores/for-basico.html">
-                <div class="badge badge-open">
-                    DISPONÍVEL
-                </div>
-
-                <div class="module-title">
-                    🟢 Loop FOR
-                </div>
-
-                <div class="module-desc">
-                    Visualize passo a passo a inicialização,
-                    condição, execução e incremento de um loop contado.
-                </div>
-            </a>
-        </div>
-
-        <div class="module locked">
-
-            <div class="badge badge-lock">
-                BLOQUEADO
-            </div>
-
-            <div class="module-title">
-                🔒 Vetores
-            </div>
-
-            <div class="module-desc">
-                Manipulação básica de vetores utilizando loops FOR.
-            </div>
-
-        </div>
-
-        <div class="module locked">
-
-            <div class="badge badge-lock">
-                BLOQUEADO
-            </div>
-
-            <div class="module-title">
-                🔒 Matrizes
-            </div>
-
-            <div class="module-desc">
-                Percorrendo matrizes com loops aninhados.
-            </div>
-
-        </div>
-
+    <div class="pilar">
+      <div class="pilar-num">02</div>
+      <div class="pilar-nome">Experimentação</div>
+      <div class="pilar-desc">Altere parâmetros e observe as consequências ao vivo.</div>
     </div>
-
-</section>
-
-<section class="section">
-
-    <div class="section-title">
-        Estruturas de Decisão
+    <div class="pilar">
+      <div class="pilar-num">03</div>
+      <div class="pilar-nome">Previsão</div>
+      <div class="pilar-desc">Antecipe o próximo resultado antes de revelá-lo.</div>
     </div>
-
-    <div class="modules">
-
-        <div class="module locked">
-
-            <div class="badge badge-lock">
-                BLOQUEADO
-            </div>
-
-            <div class="module-title">
-                🔒 IF / ELSE
-            </div>
-
-            <div class="module-desc">
-                Fluxo de execução baseado em condições.
-            </div>
-
-        </div>
-
+    <div class="pilar">
+      <div class="pilar-num">04</div>
+      <div class="pilar-nome">Verificação</div>
+      <div class="pilar-desc">Feedback imediato com explicação do resultado.</div>
     </div>
-
-</section>
-
-<section class="section">
-
-    <div class="section-title">
-        Algoritmos
+    <div class="pilar">
+      <div class="pilar-num">05</div>
+      <div class="pilar-nome">Progressão</div>
+      <div class="pilar-desc">Conteúdos liberados conforme o avanço na disciplina.</div>
     </div>
+  </div>
 
-    <div class="modules">
+</main>
 
-        <div class="module locked">
-
-            <div class="badge badge-lock">
-                BLOQUEADO
-            </div>
-
-            <div class="module-title">
-                🔒 Busca Linear
-            </div>
-
-            <div class="module-desc">
-                Procura de elementos em vetores.
-            </div>
-
-        </div>
-
-        <div class="module locked">
-
-            <div class="badge badge-lock">
-                BLOQUEADO
-            </div>
-
-            <div class="module-title">
-                🔒 Bubble Sort
-            </div>
-
-            <div class="module-desc">
-                Visualização das trocas realizadas durante a ordenação.
-            </div>
-
-        </div>
-
+<!-- MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h2>🔑 Código de acesso</h2>
+    <p>Digite o código fornecido pelo professor para desbloquear o próximo módulo.</p>
+    <input type="text" id="input-codigo" placeholder="EX: VET01" maxlength="20"
+           onkeydown="if(event.key==='Enter') confirmarCodigo()">
+    <div class="modal-msg" id="modal-msg"></div>
+    <div class="modal-botoes">
+      <button class="btn-cancelar" onclick="fecharModal()">Cancelar</button>
+      <button class="btn-confirmar" onclick="confirmarCodigo()">Desbloquear</button>
     </div>
-
-</section>
-
-<footer>
-    Laboratório Visual de Programação em C • Desenvolvido para apoio didático às disciplinas de Algoritmos e Programação
-</footer>
-
+  </div>
 </div>
 
+<footer>
+  <span>LVPC — Laboratório Visual de Programação em C</span>
+  <span>Uso educacional livre · IFPR</span>
+</footer>
+
+<script src="js/config.js"></script>
+<script>
+// ── Renderiza trilha e grid ──────────────────────────────────
+function renderizar() {
+  const trilha = document.getElementById('trilha-mapa');
+  const grid   = document.getElementById('modulos-grid');
+  trilha.innerHTML = '';
+  grid.innerHTML   = '';
+
+  LVPC_CONFIG.modulos.forEach((m, idx) => {
+    const liberado  = LVPC_CONFIG.estaLiberado(m.id);
+    const concluido = localStorage.getItem('lvpc_concluido_' + m.id) === '1';
+
+    // ── TRILHA ──
+    const item = document.createElement('div');
+    item.className = 'trilha-item';
+
+    const card = document.createElement(liberado ? 'a' : 'div');
+    if (liberado && !concluido) card.href = m.arquivo;
+    card.className = 'modulo-card ' + (concluido ? 'concluido' : liberado ? 'disponivel' : 'bloqueado');
+    card.title = m.titulo;
+    card.innerHTML = `
+      <div class="modulo-icone">${m.icone}</div>
+      <div class="modulo-fase">Fase ${m.fase}</div>
+      <div class="modulo-nome">${m.titulo}</div>
+      <span class="modulo-badge ${concluido ? 'badge-concluido' : liberado ? 'badge-disponivel' : 'badge-bloqueado'}">
+        ${concluido ? '✓ Concluído' : liberado ? '🟢 Disponível' : '🔒 Bloqueado'}
+      </span>
+    `;
+    item.appendChild(card);
+    trilha.appendChild(item);
+
+    if (idx < LVPC_CONFIG.modulos.length - 1) {
+      const sep = document.createElement('div');
+      sep.className = 'trilha-conector';
+      sep.innerHTML = '<div class="conector-linha"></div>';
+      trilha.appendChild(sep);
+    }
+
+    // ── GRID (só disponíveis) ──
+    if (liberado) {
+      const gcCard = document.createElement('a');
+      gcCard.href = m.arquivo;
+      gcCard.className = 'card';
+      gcCard.innerHTML = `
+        <div class="card-topo">
+          <span class="card-icone">${m.icone}</span>
+          <div>
+            <div class="card-titulo">${m.titulo}</div>
+            <div class="card-fase">Fase ${m.fase}</div>
+          </div>
+        </div>
+        <p class="card-descricao">${m.descricao}</p>
+        <div class="card-modos">
+          <span class="modo-tag ativo">Demonstração</span>
+          <span class="modo-tag ativo">Exploração</span>
+          <span class="modo-tag ativo">Experimento</span>
+          <span class="modo-tag ativo">Desafio</span>
+        </div>
+      `;
+      grid.appendChild(gcCard);
+    }
+  });
+}
+
+// ── Modal ────────────────────────────────────────────────────
+function abrirModal() {
+  document.getElementById('modal').classList.add('aberto');
+  document.getElementById('input-codigo').value = '';
+  document.getElementById('modal-msg').textContent = '';
+  setTimeout(() => document.getElementById('input-codigo').focus(), 50);
+}
+function fecharModal() {
+  document.getElementById('modal').classList.remove('aberto');
+}
+function confirmarCodigo() {
+  const codigo = document.getElementById('input-codigo').value;
+  const msg    = document.getElementById('modal-msg');
+  const res    = LVPC_CONFIG.tentarDesbloquear(codigo);
+
+  if (res.sucesso) {
+    const nome = res.professor ? 'todos os módulos' : res.modulo.titulo;
+    msg.textContent = `✓ ${nome} desbloqueado!`;
+    msg.className = 'modal-msg msg-ok';
+    setTimeout(() => { fecharModal(); renderizar(); }, 1200);
+  } else if (res.jaAtivado) {
+    msg.textContent = 'Este código já foi ativado.';
+    msg.className = 'modal-msg msg-err';
+  } else {
+    msg.textContent = 'Código inválido. Verifique com seu professor.';
+    msg.className = 'modal-msg msg-err';
+  }
+}
+
+document.getElementById('modal').addEventListener('click', function(e) {
+  if (e.target === this) fecharModal();
+});
+
+renderizar();
+</script>
 </body>
 </html>
